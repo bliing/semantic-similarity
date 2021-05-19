@@ -7,7 +7,6 @@ JE vais enregistrer les scores qui existent dans la base
 pour ne pas les re calculer à chaque fois 
 """
 import argparse
-import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer, util
 
@@ -39,17 +38,19 @@ embeddings = model.encode(sentences)
 
 #---------->SAUVEGARDE
 DF = pd.DataFrame(embeddings)
-DF.to_csv("data1.csv", header=None, index=False)
+DF['bug_id'] = df['bug_id']
+DF.to_csv("data1.csv", index=False)
 
 #==============================================
 #    RE USE SAUVEGARDE
 #==============================================
+import numpy as np
 import pandas as pd
 from sentence_transformers import SentenceTransformer, util
 
 model = SentenceTransformer('paraphrase-distilroberta-base-v1')
 
-df = pd.read_csv("data1.csv", header=None)
+df = pd.read_csv("data1.csv")
 #sentence 2
 #embeddings2 = model.encode(args.text)
 embeddings2 = model.encode("Dear Support, \nAppreciate your advice regarding the new release  6.0.2.P6a, our DNS servers are running on version 6.0.2.P5b amd64 . Do we need to install P5c &amp; P6 or we can directly install  6.0.2.P6a? \n Is there any outage? and how long will take to update each server?  We have 2 master (active/standby) , 4 slaves &amp; 2 caches.")
@@ -57,8 +58,8 @@ embeddings2
 
 #Compute cosine similarity between all pairs
 #cos_sim = util.pytorch_cos_sim(df.iloc[0].astype(numpy.float32), embeddings2)
-cos_sim = util.pytorch_cos_sim(df.values.astype(np.float32), embeddings2)
-
+embeddings = df.iloc[:,:-1]
+cos_sim = util.pytorch_cos_sim(embeddings.values.astype(np.float32), embeddings2)
 cos_sim
 
 
@@ -72,14 +73,14 @@ all_sentence_combinations
 
 #Sort list by the highest cosine similarity score
 all_sentence_combinations = sorted(all_sentence_combinations, key=lambda x: x[0], reverse=True)
-"""
+
 print("Top-5 most similar pairs:")
 for score, i in all_sentence_combinations[0:5]:
   print(i )
   print(df['bug_id'][i], cos_sim[i])
 
 
-"""
+
 
 
 
